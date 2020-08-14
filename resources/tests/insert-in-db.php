@@ -1,4 +1,5 @@
 <?php
+
 namespace Test\DB;
 
 include_once '../config.php';
@@ -13,7 +14,6 @@ final class TestDB implements \Test\ITest
     {
         $db = new DBSQL('localhost', 'nag_test', 'root', 'r0O7m!m8tS');
 
-
         // показать информацию о таблицах
         // $tables = $db->GetTablesInfo();
         // foreach ($tables as $i => &$table) {
@@ -23,9 +23,7 @@ final class TestDB implements \Test\ITest
 
 
         // удалить клиентов
-        // if($db->Query("DELETE FROM clients")) {
-        //     echo "DELETED!\r\n";
-        // }
+        // print_r($db->Query("DELETE FROM clients"));
 
         // вставить новых клиентов
         // $sqlReadyNames = array_reduce(
@@ -35,25 +33,46 @@ final class TestDB implements \Test\ITest
         //         return "$accumulator,('$item')";
         //     }
         // );
-
         // $sqlReadyNames = substr($sqlReadyNames, 1);
-        // if($db->Query("INSERT INTO clients (`NAME`) VALUES $sqlReadyNames;")) {
-        //     echo "INSERTED!\r\n";
-        // }
+        // print_r($db->Query("INSERT INTO clients (`NAME`) VALUES $sqlReadyNames;"));
 
 
         // создать платежи
-        if ($q = $db->Query('SELECT ID FROM clients', false)) {
+        // $result = $db->Queries([
+        //     'clients' => 'SELECT ID FROM clients LIMIT 100;',
+        //     'services' => 'SELECT ID, `NAME` FROM services;',
+        //     'payment_types' =>'SELECT ID, `NAME` FROM payment_types;',
+        // ]);
+        // $clientsTotal = count($result['clients']);
+        // $servicesTotal = count($result['services']);
+        // $payTypesTotal = count($result['payment_types']);
+        // $paymentsSql = '';
+        // for ($i = 0; $i < 90; $i++)
+        // {
+        //     $rnd = random_int(0, $clientsTotal - 1);
+        //     $rndID = $result['clients'][$rnd]['ID'];
 
-            $clientIDs = $q->fetch_all(MYSQLI_ASSOC);
+        //     // случ. сумма платежа от -5000 до 10000 +-копейки
+        //     $summ = random_int(-5000, 10000) + 10 / random_int(1, 14);
             
+        //     // случайная дата платежа от "год назад" до "сегодня"
+        //     $date = date('Y-m-d H:i:s', time() - random_int(0, 60*60*24*365));
             
-        }
-        // if($db->Query("")) {
-        //     echo "";
+        //     // случайная услуга
+        //     $rnd = random_int(0, $servicesTotal - 1);
+        //     $serviceID = $result['services'][$rnd]['ID'];
+
+        //     // случайный тип платежа
+        //     $rnd = random_int(0, $payTypesTotal - 1);
+        //     $payTypeID = $result['payment_types'][$rnd]['ID'];
+
+        //     $paymentsSql .= "($rndID,$summ,'$date',$serviceID,$payTypeID),";
         // }
+        // $paymentsSql = substr($paymentsSql, 0, -1);
+        // $paymentsSql = "INSERT INTO `payments` (`CLIENT_ID`,`SUMA`,`DATA`,`ACNT_ID`,`PAY_ID`) VALUES $paymentsSql;";
+        // $db->Query($paymentsSql);
 
-        ?><h1>Errors</h1><?php
+        echo '<h1>Errors</h1>';
         print_r($db->GetErrorList());
     }
 }
@@ -131,7 +150,8 @@ $genders = ['f', 'm'];
 function makeRandomWordSequence(string $sepatator, &...$lists): string
 {
     $str = '';
-    foreach ($lists as $i => $list) {
+    foreach ($lists as $i => $list)
+    {
         $n = count($list) - 1;
         $rndIndex = random_int(0, $n);
 
@@ -156,7 +176,8 @@ function makeRandomName(): string
 
     $namesGender = array_filter(
         $names,
-        function ($key) use (&$rndGender) {
+        function ($key) use (&$rndGender)
+        {
             return (strpos($key, $rndGender) !== FALSE);
         },
         ARRAY_FILTER_USE_KEY
@@ -164,7 +185,8 @@ function makeRandomName(): string
 
     $surnamesGender = array_filter(
         $surnames,
-        function ($key) use (&$rndGender) {
+        function ($key) use (&$rndGender)
+        {
             return (strpos($key, $rndGender) !== FALSE);
         },
         ARRAY_FILTER_USE_KEY
@@ -172,7 +194,8 @@ function makeRandomName(): string
 
     $patronicsGender = array_filter(
         $patronics,
-        function ($key) use (&$rndGender) {
+        function ($key) use (&$rndGender)
+        {
             return (strpos($key, $rndGender) !== FALSE);
         },
         ARRAY_FILTER_USE_KEY
@@ -192,7 +215,8 @@ function makeRandomNames(int $n = 0): array
 {
     $result = [];
 
-    for ($i = 0; $i < $n; $i++) {
+    for ($i = 0; $i < $n; $i++)
+    {
         $result[$i] = makeRandomName();
     }
 

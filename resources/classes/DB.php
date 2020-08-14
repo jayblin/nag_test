@@ -16,6 +16,8 @@ namespace Core\DB;
 
 /**
  * @todo todos: 
+ * - Связать _PrepareExecuteQuery() и _CacheErrors() 
+ * - Реализовать транзакиции
  */
 class DBSQL
 {
@@ -25,6 +27,7 @@ class DBSQL
     private string      $_pass;
     private ?\mysqli    $_mysqli;
     private array       $_errorList = [];
+    private bool        $_preserveErrorLog = false;
     // private bool        $_error = false;
     // private string      $errorMessage;
 
@@ -49,38 +52,72 @@ class DBSQL
 
 
     /**
-     * Выполняет SQL запрос. 
-     * 
-     * Вернет false если запрос не удался, и true если удался
-     * 
+     * Выполняет SQL-запрос. 
+     *  
      * @param string    $queryString    Строка с запросом
      * @param bool      $prepare        Использовать метод prepare() (true|false) (да|нет)
      * 
-     * @return \mysqli_result|bool
+     * @return array
      */
-    public function Query(string $queryString, bool $prepare = true)
+    public function Query(string $queryString): array
     {
+        
         $conn = $this->_OpenConnection();
 
-        $result = null;
-
-        if (DBSQL::_IsConnected($conn)) {
-
-            $_query = $queryString;
-            if ($prepare) {
-                $_query = $conn->prepare($queryString);
-            }
-
-            @$result = $conn->query($_query);
-
-            $this->_CacheErrors();
-
-            $this->_CloseConnection();
+        if (! DBSQL::_IsConnected($conn)) 
+        {
+            return [];
         }
+
+        $result = [];
+
+        $result = $this->_PrepareExecuteQuery($queryString);
+
+        $this->_CacheErrors();
+        $this->_CloseConnection();
 
         return $result;
     }
 
+
+    /**
+     * Выполняет несколько SQL-запросов
+     * 
+     * Если какой-либо запрос не был выполнен, то следующие запросы всё равно выполнятся.
+     * Возвращаяет массив с результатами запросов
+     * 
+     * @param array $queryStrings Массив строк-запросов
+     * 
+     * @return array
+     */
+    public function Queries(array $queryStrings)
+    {
+        $conn = $this->_OpenConnection();
+        
+        if (! DBSQL::_IsConnected($conn)) 
+        {
+            return [];
+        }
+
+        $result = [];
+
+        $this->_preserveErrorLog = true;
+
+        foreach ($queryStrings as $i => &$queryString)
+        {
+            $tmp = $this->_PrepareExecuteQuery($queryString);
+            if (empty($tmp)) continue;
+
+            $result[$i] = $tmp;
+        }
+
+        $this->_CacheErrors();
+        $this->_CloseConnection();
+
+        $this->_preserveErrorLog = false;
+
+        return $result;
+    }
 
     /**
      * Выдает массив ошибок
@@ -100,14 +137,9 @@ class DBSQL
      */
     public function GetTablesInfo(): array
     {
-        $result = [];
         $db =& $this->_db;
 
-        if (@$tmp = $this->Query("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA LIKE '$db';", false)) {
-            $result = $tmp->fetch_all(MYSQLI_ASSOC);
-        }
-
-        return $result;
+        return $this->Query("SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA LIKE '$db';");
     }
 
 
@@ -120,16 +152,39 @@ class DBSQL
      */
     public function GetTableColumnInfo(string $tableName): array
     {
-        $result = [];
-        // $db =& $this->_db;
+        return $this->Query("SHOW FULL COLUMNS FROM $tableName");
+    }
 
-        if (@$tmp = $this->Query("SHOW FULL COLUMNS FROM $tableName", false)) {
+
+    /**
+     * Подгатавливает и выполняет запрос
+     * 
+     * Возвращает массив
+     * 
+     * @param string $queryString
+     * 
+     * @return array
+     */
+    private function _PrepareExecuteQuery(string &$queryString): array
+    {
+        $result = [];
+
+        $query = $this->_mysqli->prepare($queryString);
+        @$tmp = $query->execute();
+
+        @$tmp = $query->get_result();
+
+        if ($tmp) 
+        {
             $result = $tmp->fetch_all(MYSQLI_ASSOC);
+        }
+
+        if ($query->errno) {
+            $this->_CacheErrors($query->error_list);
         }
 
         return $result;
     }
-
 
     /**
      * Открывает соединение и выдает его
@@ -145,10 +200,12 @@ class DBSQL
             $this->_db
         );
 
-        // if (DBSQL::_IsConnected($conn) && ! $conn->connect_errno) 
-        // {
         $this->_mysqli = $conn;
-        // }
+
+        if ($this->_preserveErrorLog === false) 
+        {
+            $this->_errorList = [];
+        }
 
         return $this->_mysqli;
     }
@@ -172,19 +229,18 @@ class DBSQL
 
 
     /**
+     * Кэширует ошибки
+     * 
+     * @param array $miscErrors Массив доп. ошибок
      * 
      * @return void
      */
-    private function _CacheErrors(): void
+    private function _CacheErrors(array $miscErrors = null): void
     {
-        if (!DBSQL::_IsConnected($this->_mysqli)) {
-            $this->_errorList = [];
-            return;
-        }
-
         $conn = $this->_mysqli;
 
-        if ($conn->connect_errno) {
+        if ($conn->connect_errno) 
+        {
             $this->_errorList[] =  [
                 'errno' => $conn->connect_errno,
                 'error' => $conn->connect_error
@@ -192,8 +248,17 @@ class DBSQL
             return;
         }
 
-        foreach ($conn->error_list as $i => $error) {
+        foreach ($conn->error_list as $i => $error) 
+        {
             $this->_errorList[] = $error;
+        }
+
+        if ($miscErrors) 
+        {
+            foreach ($miscErrors as $i => $error) 
+            {
+                $this->_errorList[] = $error;
+            }
         }
     }
 
