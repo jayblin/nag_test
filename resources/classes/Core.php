@@ -1,5 +1,5 @@
 <?php
-require_once './core.php';
+require_once 'DB.php';
 
 class Core
 {
