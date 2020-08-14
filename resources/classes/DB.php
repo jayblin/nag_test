@@ -16,7 +16,6 @@ namespace Core\DB;
 
 /**
  * @todo todos: 
- * - Связать _PrepareExecuteQuery() и _CacheErrors() 
  * - Реализовать транзакиции
  */
 class DBSQL
