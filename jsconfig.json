@@ -1,0 +1,7 @@
+{
+    "typeAcquisition": {
+        "include": [
+            "./public/js/jquery.js"
+        ]
+    }
+}

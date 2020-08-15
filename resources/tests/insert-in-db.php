@@ -5,14 +5,14 @@ namespace Test\DB;
 include_once '../config.php';
 include_once \Config\CORE_FILE_PATH;
 
-use \Core\DB\DBSQL;
+use \Core\DB\DBMYSQL;
 
 final class TestDB implements \Test\ITest
 {
 
     public static function Perform()
     {
-        $db = new DBSQL('localhost', 'nag_test', 'root', 'r0O7m!m8tS');
+        $db = new DBMYSQL('localhost', 'nag_test', 'root', 'r0O7m!m8tS');
 
         // показать информацию о таблицах
         // $tables = $db->GetTablesInfo();
