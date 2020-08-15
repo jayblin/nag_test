@@ -1,0 +1,7 @@
+RewriteEngine On
+RewriteBase /nag-test/
+
+RewriteCond %{REQUEST_URI} !init.php
+RewriteCond %{REQUEST_URI} !(/?public)
+RewriteRule ^(.*)$ init.php?req=$1 [L]
+
