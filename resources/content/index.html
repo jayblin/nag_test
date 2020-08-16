@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+
+    <link rel="stylesheet" href="public/css/style.css">
 </head>
 
 <body>
@@ -13,17 +15,30 @@
     
     <main class="content">
 
-        <div class="controls">
-            <input type="month" />
-            <select>
-                <option value="y"></option>
-                <option value="n"></option>
-            </select>
+        <div class="controls" id="filter">
+            <input type="month" id="monthSelect"/>
+
+            <div class="">
+                <label for="clientTypeSelect">Тип клиента: </label>
+                <select id="clientTypeSelect">
+                </select>
+            </div>
+
+            <button>Смотреть</button>
         </div>
 
-        <div class="table">
-            
-        </div>
+        <table class="report" id="report">
+            <tbody>
+                <tr>
+                    <th>Услуга</th>
+                    <th>Баланс на начало периода</th>
+                    <th>Приход</th>
+                    <th>Расход</th>
+                    <th>Перерасчет</th>
+                    <th>Итого</th>
+                </tr>
+            </tbody>
+        </table>
     </main>
 
     <footer></footer>

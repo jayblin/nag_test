@@ -7,30 +7,5 @@ namespace Core\Page {
         {
 
         }
-
-        public function Head()
-        {
-
-        }
-
-        public function Header()
-        {
-
-        }
-
-        public function Footer()
-        {
-
-        }
-
-        public function Scripts()
-        {
-
-        }
-
-        public function SetContent()
-        {
-            
-        }
     }
 }

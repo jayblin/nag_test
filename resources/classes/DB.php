@@ -1,6 +1,9 @@
 <?php
 
+
 namespace Core\DB {
+
+    require_once 'QueryBuilder.php';
 
     /**
      * Интерфейс для легкой работы с разными СУБД (вроде??)
@@ -13,6 +16,7 @@ namespace Core\DB {
         public function GetErrorList(): array;
         public function GetTablesInfo(): array;
         public function GetTableColumnInfo(string $tableName): array;
+        public function GetQueryBuilder(): \Core\DB\IQueryBuilder;
     }
 
     /**
@@ -45,6 +49,7 @@ namespace Core\DB {
             $this->_user =  $user;
             $this->_pass =  $pass;
         }
+
 
         public function __destruct()
         {
@@ -158,6 +163,17 @@ namespace Core\DB {
 
 
         /**
+         * Возвращает построитель запросов
+         * 
+         * @return \Core\DB\IQueryBuilder
+         */
+        public function GetQueryBuilder(): \Core\DB\IQueryBuilder
+        {
+           return new \Core\DB\MYSQLQueryBuilder(); 
+        }
+
+
+        /**
          * Подгатавливает и выполняет запрос
          * 
          * Возвращает массив
@@ -171,6 +187,12 @@ namespace Core\DB {
             $result = [];
 
             $query = $this->_mysqli->prepare($queryString);
+
+            if (! $query) 
+            {
+                return [];
+            }
+
             @$tmp = $query->execute();
 
             @$tmp = $query->get_result();
@@ -186,6 +208,7 @@ namespace Core\DB {
 
             return $result;
         }
+
 
         /**
          * Открывает соединение и выдает его
@@ -274,5 +297,4 @@ namespace Core\DB {
             return isset($mysqli);
         }
     }
-
 }
