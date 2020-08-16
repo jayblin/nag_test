@@ -138,7 +138,7 @@ namespace Core\DB {
 
 
         /**
-         * Создает SORT BY - выражение запроса
+         * Создает ORDER BY - выражение запроса
          * 
          * @param string $columnName Название столбца
          * @param string $direction Направление сортировки
@@ -148,7 +148,7 @@ namespace Core\DB {
             if (! $direction) {
                 $direction = 'ASC';
             }
-            $this->_groupStmt = "SORT BY $columnName $direction ";
+            $this->_sortStmt = "ORDER BY $columnName $direction ";
         }
 
 
@@ -161,8 +161,9 @@ namespace Core\DB {
                 $this->_fromStmt . 
                 $this->_joinStmt . 
                 $this->_whereStmt .
+                $this->_groupStmt . 
                 $this->_sortStmt .
-                $this->_groupStmt . ";";
+                ";";
         }
     }
 }
