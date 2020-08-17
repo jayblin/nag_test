@@ -13,6 +13,52 @@
 * сводный отчет
 
 
+# Стрктура БД
+
+```sql
+CREATE DATABASE `nag_test`;
+
+/* КЛИЕНТЫ */
+CREATE TABLE `clients` (
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `NAME` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `TYPE` int NOT NULL DEFAULT '1',
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+/* ТИПЫ ПЛАТЕЖЕЙ */
+CREATE TABLE `payment_types` (
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `NAME` varchar(40) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+/* ПЛАТЕЖТ */
+CREATE TABLE `payments` (
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `CLIENT_ID` int NOT NULL,
+  `SUMA` float NOT NULL,
+  `DATA` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ACNT_ID` int NOT NULL,
+  `PAY_ID` int NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `CLIENT_ID` (`CLIENT_ID`),
+  KEY `PAY_ID` (`PAY_ID`) /*!80000 INVISIBLE */,
+  KEY `payments_ibfk_2_idx` (`ACNT_ID`),
+  CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`CLIENT_ID`) REFERENCES `clients` (`ID`),
+  CONSTRAINT `payments_ibfk_2` FOREIGN KEY (`ACNT_ID`) REFERENCES `services` (`ID`),
+  CONSTRAINT `payments_ibfk_3` FOREIGN KEY (`PAY_ID`) REFERENCES `payment_types` (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+/* УСЛУГИ */
+CREATE TABLE `services` (
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `NAME` varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  PRIMARY KEY (`ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+```
+
+
 # Сводный отчет
 
 Отчет формируется по примеру запроса ниже:
