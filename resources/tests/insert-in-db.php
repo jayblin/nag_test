@@ -2,78 +2,97 @@
 
 namespace Test\DB;
 
-include_once '../config.php';
+include_once '../../config.php';
 include_once \Config\CORE_FILE_PATH;
 
 use \Core\DB\DBMYSQL;
 
 final class TestDB implements \Test\ITest
 {
+    public static function CreatePayments($n = 10)
+    {
+        $db = new DBMYSQL('localhost', 'nag_test', 'root', 'r0O7m!m8tS');
 
-    public static function Perform()
+        // создать платежи
+        $result = $db->Queries([
+            'clients' => 'SELECT ID FROM clients LIMIT 100;',
+            'services' => 'SELECT ID, `NAME` FROM services;',
+            'payment_types' =>'SELECT ID, `NAME` FROM payment_types;',
+        ]);
+        $clientsTotal = count($result['clients']);
+        $servicesTotal = count($result['services']);
+        $payTypesTotal = count($result['payment_types']);
+        $paymentsSql = '';
+        for ($i = 0; $i < $n; $i++)
+        {
+            $rnd = random_int(0, $clientsTotal - 1);
+            $rndID = $result['clients'][$rnd]['ID'];
+
+            // случ. сумма платежа от -5000 до 10000 +-копейки
+            $summ = random_int(-5000, 10000) + 10 / random_int(1, 14);
+            
+            // случайная дата платежа от "год назад" до "сегодня"
+            $date = date('Y-m-d H:i:s', time() - random_int(0, 60*60*24*365));
+            
+            // случайная услуга
+            $rnd = random_int(0, $servicesTotal - 1);
+            $serviceID = $result['services'][$rnd]['ID'];
+
+            // случайный тип платежа
+            $rnd = random_int(0, $payTypesTotal - 1);
+            $payTypeID = $result['payment_types'][$rnd]['ID'];
+
+            $paymentsSql .= "($rndID,$summ,'$date',$serviceID,$payTypeID),";
+        }
+        $paymentsSql = substr($paymentsSql, 0, -1);
+        $paymentsSql = "INSERT INTO `payments` (`CLIENT_ID`,`SUMA`,`DATA`,`ACNT_ID`,`PAY_ID`) VALUES $paymentsSql;";
+        $db->Query($paymentsSql);
+
+        echo '<h1>Errors</h1>';
+        print_r($db->GetErrorList());
+    }
+
+    public static function ShowTableInfo()
     {
         $db = new DBMYSQL('localhost', 'nag_test', 'root', 'r0O7m!m8tS');
 
         // показать информацию о таблицах
-        // $tables = $db->GetTablesInfo();
-        // foreach ($tables as $i => &$table) {
-        //     echo '<h1>'.$table['TABLE_NAME'].'</h1>';
-        //     print_r($db->GetTableColumnInfo($table['TABLE_NAME']));
-        // }
-
-
-        // удалить клиентов
-        // print_r($db->Query("DELETE FROM clients"));
-
-        // вставить новых клиентов
-        // $sqlReadyNames = array_reduce(
-        //     makeRandomNames(12),
-        //     function ($accumulator, $item) {
-        //         $item = trim($item);
-        //         return "$accumulator,('$item')";
-        //     }
-        // );
-        // $sqlReadyNames = substr($sqlReadyNames, 1);
-        // print_r($db->Query("INSERT INTO clients (`NAME`) VALUES $sqlReadyNames;"));
-
-
-        // создать платежи
-        // $result = $db->Queries([
-        //     'clients' => 'SELECT ID FROM clients LIMIT 100;',
-        //     'services' => 'SELECT ID, `NAME` FROM services;',
-        //     'payment_types' =>'SELECT ID, `NAME` FROM payment_types;',
-        // ]);
-        // $clientsTotal = count($result['clients']);
-        // $servicesTotal = count($result['services']);
-        // $payTypesTotal = count($result['payment_types']);
-        // $paymentsSql = '';
-        // for ($i = 0; $i < 90; $i++)
-        // {
-        //     $rnd = random_int(0, $clientsTotal - 1);
-        //     $rndID = $result['clients'][$rnd]['ID'];
-
-        //     // случ. сумма платежа от -5000 до 10000 +-копейки
-        //     $summ = random_int(-5000, 10000) + 10 / random_int(1, 14);
-            
-        //     // случайная дата платежа от "год назад" до "сегодня"
-        //     $date = date('Y-m-d H:i:s', time() - random_int(0, 60*60*24*365));
-            
-        //     // случайная услуга
-        //     $rnd = random_int(0, $servicesTotal - 1);
-        //     $serviceID = $result['services'][$rnd]['ID'];
-
-        //     // случайный тип платежа
-        //     $rnd = random_int(0, $payTypesTotal - 1);
-        //     $payTypeID = $result['payment_types'][$rnd]['ID'];
-
-        //     $paymentsSql .= "($rndID,$summ,'$date',$serviceID,$payTypeID),";
-        // }
-        // $paymentsSql = substr($paymentsSql, 0, -1);
-        // $paymentsSql = "INSERT INTO `payments` (`CLIENT_ID`,`SUMA`,`DATA`,`ACNT_ID`,`PAY_ID`) VALUES $paymentsSql;";
-        // $db->Query($paymentsSql);
+        $tables = $db->GetTablesInfo();
+        foreach ($tables as $i => &$table) {
+            echo '<h1>'.$table['TABLE_NAME'].'</h1>';
+            print_r($db->GetTableColumnInfo($table['TABLE_NAME']));
+        }
 
         echo '<h1>Errors</h1>';
         print_r($db->GetErrorList());
+    }
+
+    public static function RenewClients()
+    {
+        $db = new DBMYSQL('localhost', 'nag_test', 'root', 'r0O7m!m8tS');
+
+        // удалить клиентов
+        print_r($db->Query("DELETE FROM clients"));
+    
+        // вставить новых клиентов
+        $sqlReadyNames = array_reduce(
+            makeRandomNames(12),
+            function ($accumulator, $item) {
+                $item = trim($item);
+                return "$accumulator,('$item')";
+            }
+        );
+        $sqlReadyNames = substr($sqlReadyNames, 1);
+        print_r($db->Query("INSERT INTO clients (`NAME`) VALUES $sqlReadyNames;"));
+
+        echo '<h1>Errors</h1>';
+        print_r($db->GetErrorList());
+    }
+
+    public static function Perform()
+    {
+        // self::RenewClients();
+        self::CreatePayments(900);
     }
 }
 

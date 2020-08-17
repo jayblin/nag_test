@@ -7,5 +7,6 @@ RewriteRule ^/?api/(.*)$ init.php?api=$1 [L]
 RewriteCond %{REQUEST_URI} !init.php
 RewriteCond %{REQUEST_URI} !(/?public)
 RewriteCond %{REQUEST_URI} !(/?api)
+RewriteCond %{REQUEST_URI} !(/?resources/tests)
 RewriteRule ^(.*)$ init.php?req=$1 [L]
 
